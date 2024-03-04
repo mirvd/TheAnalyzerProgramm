@@ -15,9 +15,7 @@ public class Main {
     private static final int lenghtLine = 100_000;
     private static int countMaxA = 0;
     private static int countMaxB = 0;
-
     private static int countMaxC = 0;
-
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -35,52 +33,16 @@ public class Main {
             generateFinish = true;
         });
 
-
         Thread threadA = new Thread(() -> {
-            while (true) {
-                try {
-                    String text = queueA.take();
-                    int count = countOccurrences(text, 'a');
-                    if (count > countMaxA) countMaxA = count;
-
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                if (generateFinish && queueA.isEmpty()) {
-                    break;
-                }
-            }
+            countMaxA = calcMax(queueA, 'a', countMaxA);
         });
 
         Thread threadB = new Thread(() -> {
-            while (true) {
-                try {
-                    String text = queueB.take();
-                    int count = countOccurrences(text, 'b');
-                    if (count > countMaxB) countMaxB = count;
-
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                if (generateFinish && queueB.isEmpty()) {
-                    break;
-                }
-            }
+            countMaxB = calcMax(queueB, 'b', countMaxB);
         });
-        Thread threadC = new Thread(() -> {
-            while (true) {
-                try {
-                    String text = queueC.take();
-                    int count = countOccurrences(text, 'c');
-                    if (count > countMaxC) countMaxC = count;
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                if (generateFinish && queueC.isEmpty()) {
-                    break;
-                }
-            }
+        Thread threadC = new Thread(() -> {
+            countMaxC = calcMax(queueC, 'c', countMaxC);
         });
 
         threadCreateText.start();
@@ -93,9 +55,9 @@ public class Main {
         threadB.join();
         threadC.join();
 
-        System.out.println("Cамое большим количество символов 'a' в строке: " + countMaxA + " шт ");
-        System.out.println("Cамое большим количество символов 'b' в строке: " + countMaxB + " шт ");
-        System.out.println("Cамое большим количество символов 'c' в строке: " + countMaxC + " шт ");
+        System.out.println("Cамое большое количество символов 'a' в строке: " + countMaxA + " шт ");
+        System.out.println("Cамое большое количество символов 'b' в строке: " + countMaxB + " шт ");
+        System.out.println("Cамое большое количество символов 'c' в строке: " + countMaxC + " шт ");
 
     }
 
@@ -110,6 +72,23 @@ public class Main {
 
     private static int countOccurrences(String str, char ch) {
         return str.length() - str.replace(String.valueOf(ch), "").length();
+    }
+
+    private static int calcMax(BlockingQueue<String> queue, char symbol, int countMax) {
+        while (true) {
+            try {
+                String text = queue.take();
+                int count = countOccurrences(text, symbol);
+                if (count > countMax) countMax = count;
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (generateFinish && queue.isEmpty()) {
+                break;
+            }
+        }
+        return countMax;
     }
 
 }
